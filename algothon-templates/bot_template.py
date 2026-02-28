@@ -19,6 +19,7 @@ import sseclient
 
 STANDARD_HEADERS = {"Content-Type": "application/json; charset=utf-8"}
 
+print("ts actually running")
 
 class DictLikeFrozenDataclassMapping(Mapping):
     """Mixin class to allow frozen dataclasses behave like a dict."""
