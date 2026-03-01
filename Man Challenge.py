@@ -187,7 +187,7 @@ for inst in instruments:
     s = current_signals[inst]
     pred = predicted_returns[inst]
     da = dir_accuracies[inst]
-    status = '✅ ELIGIBLE' if eligible[inst] else '❌ EXCLUDED'
+    status = ' ELIGIBLE' if eligible[inst] else ' EXCLUDED'
     print(f"  {inst}: Sig={s:+.4f}  ML_Pred={pred*100:+.2f}%  DirAcc={da:.1%}  {status}")
 print(f"\n  {n_eligible} instruments eligible\n")
 
@@ -399,7 +399,7 @@ checks_passed = 0
 # ── Check 1: Weight constraints ──
 c1 = (abs(best_w.sum() - 1.0) < 0.001 and (best_w >= 0).all() and best_w.max() <= 0.40)
 checks_passed += c1
-print(f"  {'✅' if c1 else '❌'} Check 1 — Weights valid (sum={best_w.sum():.4f}, max={best_w.max()*100:.1f}%)")
+print(f"  {'y' if c1 else 'n'} Check 1 — Weights valid (sum={best_w.sum():.4f}, max={best_w.max()*100:.1f}%)")
 
 # ── Check 2: Beats equal weight on recent data ──
 new_pr = (new_rets[instruments] * best_w).sum(axis=1)
@@ -408,13 +408,13 @@ new_sh = (new_pr.mean()*252 - rf_annual) / (new_pr.std()*np.sqrt(252))
 eq_sh = (eq_pr.mean()*252 - rf_annual) / (eq_pr.std()*np.sqrt(252))
 c2 = new_sh > eq_sh
 checks_passed += c2
-print(f"  {'✅' if c2 else '❌'} Check 2 — New data: Portfolio Sharpe {new_sh:.2f} vs EW Sharpe {eq_sh:.2f}")
+print(f"  {'y' if c2 else 'n'} Check 2 — New data: Portfolio Sharpe {new_sh:.2f} vs EW Sharpe {eq_sh:.2f}")
 
 # ── Check 3: ML direction accuracy > 50% ──
 avg_da = np.mean(list(dir_accuracies.values()))
 c3 = avg_da > 0.50
 checks_passed += c3
-print(f"  {'✅' if c3 else '❌'} Check 3 — ML direction accuracy: {avg_da:.1%}")
+print(f"  {'y' if c3 else 'n'} Check 3 — ML direction accuracy: {avg_da:.1%}")
 
 # ── Check 4: Signal alignment ≥ 7/10 ──
 aligned = sum(1 for i, inst in enumerate(instruments)
@@ -422,13 +422,13 @@ aligned = sum(1 for i, inst in enumerate(instruments)
                  (current_signals[inst] <= 0 and best_w[i] < 0.01))
 c4 = aligned >= 7
 checks_passed += c4
-print(f"  {'✅' if c4 else '❌'} Check 4 — Signal alignment: {aligned}/10")
+print(f"  {'y' if c4 else 'n'} Check 4 — Signal alignment: {aligned}/10")
 
 # ── Check 5: Risk concentration < 40% ──
 rc_pct = risk_contrib_pct(best_w, cov_matrix)
 c5 = rc_pct.max() < 40
 checks_passed += c5
-print(f"  {'✅' if c5 else '❌'} Check 5 — Risk concentration: {rc_pct.max():.1f}% (cap: 40%)")
+print(f"  {'y' if c5 else 'n'} Check 5 — Risk concentration: {rc_pct.max():.1f}% (cap: 40%)")
 
 # ── Check 6: Drawdown < equal weight ──
 port_cum = (1 + (returns[instruments] * best_w).sum(axis=1)).cumprod()
@@ -437,7 +437,7 @@ eq_cum = (1 + (returns[instruments] * (np.ones(10)/10)).sum(axis=1)).cumprod()
 eq_dd = (eq_cum / eq_cum.cummax() - 1).min()
 c6 = abs(port_dd) < abs(eq_dd)
 checks_passed += c6
-print(f"  {'✅' if c6 else '❌'} Check 6 — Max drawdown: {port_dd*100:.1f}% vs EW {eq_dd*100:.1f}%")
+print(f"  {'y' if c6 else 'n'} Check 6 — Max drawdown: {port_dd*100:.1f}% vs EW {eq_dd*100:.1f}%")
 
 # ── Check 7: Beats ≥1 naive benchmark on recent data ──
 # Momentum top 4
@@ -459,18 +459,18 @@ for bname, bw in benchmarks.items():
         beaten += 1
 c7 = beaten >= 1
 checks_passed += c7
-print(f"  {'✅' if c7 else '❌'} Check 7 — Beats {beaten}/3 naive benchmarks on recent Sharpe")
+print(f"  {'y' if c7 else 'n'} Check 7 — Beats {beaten}/3 naive benchmarks on recent Sharpe")
 
 # ── Final verdict ──
 print(f"\n  RESULT: {checks_passed}/7 checks passed")
 if checks_passed >= 6:
-    print("  ✅✅ STRONGLY VALIDATED — safe to submit")
+    print("   STRONGLY VALIDATED — safe to submit")
 elif checks_passed >= 5:
-    print("  ✅ VALIDATED — acceptable with minor caveats")
+    print("   VALIDATED — acceptable with minor caveats")
 elif checks_passed >= 3:
-    print("  ⚠️  MIXED — review before submitting")
+    print("    MIXED — review before submitting")
 else:
-    print("  ❌ FAILED — do not submit")
+    print("   FAILED — do not submit")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -482,7 +482,7 @@ print("FINAL PORTFOLIO:")
 print(f"{'='*90}")
 for i, inst in enumerate(instruments):
     if best_w[i] > 0.005:
-        print(f"  {inst}: {best_w[i]*100:5.1f}%  Sig={current_signals[inst]:+.4f} ✅  "
+        print(f"  {inst}: {best_w[i]*100:5.1f}%  Sig={current_signals[inst]:+.4f}   "
               f"Risk={rc_pct[i]:.1f}%")
 
 eff_n = 1 / (best_w ** 2).sum()
